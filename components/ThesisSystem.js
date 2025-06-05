@@ -1372,7 +1372,7 @@ const ThesisSystem = () => {
                 <div style={{padding: '20px'}}>
                     {[0, 1, 2].map((index) => (
                         <div key={index} style={styles.formGroup}>
-                            <label style={styles.label}>研究方向 {index + 1} {index === 0 ? '（必填）' : '（选填）'}</label>
+                            <label style={styles.label}>研究方向（选填）</label>
                             <input
                                 type="text"
                                 value={teacherDirections[index]}
