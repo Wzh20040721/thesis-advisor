@@ -707,7 +707,7 @@ const ThesisSystem = () => {
                                         value={studentLogin.studentId}
                                         onChange={(e) => setStudentLogin({...studentLogin, studentId: e.target.value})}
                                         placeholder="请输入学号"
-                                        style={styles.input}
+                                        style={{...styles.input, width: '100%'}}
                                     />
                                 </div>
 
@@ -722,12 +722,12 @@ const ThesisSystem = () => {
                                             value={studentLogin.password}
                                             onChange={(e) => setStudentLogin({...studentLogin, password: e.target.value})}
                                             placeholder="请输入密码"
-                                            style={{...styles.input, paddingRight: '45px'}}
+                                            style={{...styles.input, width: '100%', paddingRight: '45px'}}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword({...showPassword, login: !showPassword.login})}
-                                            style={{position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b'}}
+                                            style={{position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 0, margin: 0, height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}
                                         >
                                             {showPassword.login ? <EyeOff size={18} /> : <Eye size={18} />}
                                         </button>
@@ -1701,97 +1701,100 @@ const ThesisSystem = () => {
             : renderTeacherView();
     }
 
+    // 登录界面：左右分栏，左侧身份选择，右侧登录表单
     return (
-        <div style={{...styles.pageContainer, background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', display: 'flex'}}>
-            {/* 左侧选择器 */}
-            <div style={{width: '300px', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', borderRight: '1px solid rgba(255, 255, 255, 0.2)', padding: '30px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-                <div style={{textAlign: 'center', marginBottom: '30px'}}>
-                    <div style={{width: '60px', height: '60px', background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px'}}>
-                        <GraduationCap size={32} color="white" />
-                    </div>
-                    <h1 style={{fontSize: '20px', fontWeight: 'bold', color: '#1f2937', margin: '0 0 8px'}}>毕业论文导师分配系统</h1>
-                    <p style={{color: '#6b7280', fontSize: '14px', margin: 0}}>选择您的身份</p>
-                </div>
-
-                <div style={{width: '100%', display: 'flex', flexDirection: 'column', gap: '16px'}}>
-                    <button
-                        onClick={() => setUserType('student')}
-                        style={{
-                            width: '100%',
-                            padding: '20px',
-                            borderRadius: '16px',
-                            fontWeight: 'bold',
-                            fontSize: '16px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            transition: 'all 0.3s ease',
-                            cursor: 'pointer',
-                            border: userType === 'student' ? 'none' : '2px solid #8b5cf6',
-                            background: userType === 'student'
-                                ? 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)'
-                                : 'rgba(255,255,255,0.8)',
-                            color: userType === 'student' ? 'white' : '#8b5cf6',
-                            boxShadow: userType === 'student' ? '0 8px 25px rgba(139, 92, 246, 0.3)' : '0 4px 15px rgba(0,0,0,0.05)'
-                        }}
-                    >
-                        <User size={24} style={{marginBottom: '8px'}} />
-                        <span>学生端</span>
-                        <span style={{fontSize: '12px', opacity: 0.8, marginTop: '4px'}}>选择研究方向</span>
-                    </button>
-
-                    <button
-                        onClick={() => setUserType('teacher')}
-                        style={{
-                            width: '100%',
-                            padding: '20px',
-                            borderRadius: '16px',
-                            fontWeight: 'bold',
-                            fontSize: '16px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            transition: 'all 0.3s ease',
-                            cursor: 'pointer',
-                            border: userType === 'teacher' ? 'none' : '2px solid #10b981',
-                            background: userType === 'teacher'
-                                ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)'
-                                : 'rgba(255,255,255,0.8)',
-                            color: userType === 'teacher' ? 'white' : '#10b981',
-                            boxShadow: userType === 'teacher' ? '0 8px 25px rgba(16, 185, 129, 0.3)' : '0 4px 15px rgba(0,0,0,0.05)'
-                        }}
-                    >
-                        <Users size={24} style={{marginBottom: '8px'}} />
-                        <span>导师端</span>
-                        <span style={{fontSize: '12px', opacity: 0.8, marginTop: '4px'}}>管理研究方向</span>
-                    </button>
-                </div>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)'
+      }}>
+        {/* 左侧身份选择 */}
+        <div style={{
+          width: 360,
+          background: '#fff',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 8px 32px rgba(60,60,100,0.08)',
+          borderRight: '1px solid #f1f5f9',
+          padding: '30px 20px'
+        }}>
+          <div style={{textAlign: 'center', marginBottom: 40}}>
+            <div style={{
+              width: 60, height: 60,
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+              borderRadius: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 16px'
+            }}>
+              <GraduationCap size={32} color="white" />
             </div>
-
-            {/* 右侧登录界面 */}
-            <div style={{flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'}}>
-                {userType === 'student' ? renderStudentLogin() : renderTeacherLogin()}
-            </div>
-
-            <style jsx>{`
-       @keyframes spin {
-         0% { transform: rotate(0deg); }
-         100% { transform: rotate(360deg); }
-       }
-       
-       @keyframes bounce {
-         0%, 20%, 50%, 80%, 100% {
-           transform: translateY(0);
-         }
-         40% {
-           transform: translateY(-10px);
-         }
-         60% {
-           transform: translateY(-5px);
-         }
-       }
-     `}</style>
+            <h1 style={{fontSize: 20, fontWeight: 700, color: '#1f2937', margin: '0 0 8px'}}>毕业论文导师选择系统</h1>
+            <p style={{color: '#6b7280', fontSize: 14, margin: 0}}>选择您的身份</p>
+          </div>
+          <div style={{width: '100%', display: 'flex', flexDirection: 'column', gap: 20}}>
+            <button
+              onClick={() => setUserType('student')}
+              style={{
+                width: '100%',
+                padding: 24,
+                borderRadius: 16,
+                fontWeight: 700,
+                fontSize: 18,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                border: userType === 'student' ? 'none' : '2px solid #8b5cf6',
+                background: userType === 'student'
+                  ? 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)'
+                  : '#fff',
+                color: userType === 'student' ? 'white' : '#8b5cf6',
+                boxShadow: userType === 'student' ? '0 8px 25px rgba(139, 92, 246, 0.15)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              <User size={28} style={{marginBottom: 8}} />
+              学生端
+              <span style={{fontSize: 13, opacity: 0.7, marginTop: 4}}>选择导师</span>
+            </button>
+            <button
+              onClick={() => setUserType('teacher')}
+              style={{
+                width: '100%',
+                padding: 24,
+                borderRadius: 16,
+                fontWeight: 700,
+                fontSize: 18,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                border: userType === 'teacher' ? 'none' : '2px solid #10b981',
+                background: userType === 'teacher'
+                  ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)'
+                  : '#fff',
+                color: userType === 'teacher' ? 'white' : '#10b981',
+                boxShadow: userType === 'teacher' ? '0 8px 25px rgba(16, 185, 129, 0.15)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              <Users size={28} style={{marginBottom: 8}} />
+              导师端
+              <span style={{fontSize: 13, opacity: 0.7, marginTop: 4}}>查看学生</span>
+            </button>
+          </div>
         </div>
+        {/* 右侧登录表单 */}
+        <div style={{
+          flex: 1,
+          display: 'block',
+          background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+          minHeight: '100vh',
+          position: 'relative'
+        }}>
+          {userType === 'student' ? renderStudentLogin() : renderTeacherLogin()}
+        </div>
+      </div>
     );
 };
 
