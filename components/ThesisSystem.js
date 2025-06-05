@@ -54,9 +54,11 @@ const ThesisSystem = () => {
         if (teacherInfo) {
             if (systemPhase === 'direction_input') {
                 fetchTeacherDirections();
-            } else if (systemPhase === 'teacher_selection') {
+            } else if (systemPhase === 'student_selection' || systemPhase === 'teacher_selection') {
                 fetchDirectionStudents();
-                fetchTeacherSelection();
+                if (systemPhase === 'teacher_selection') {
+                    fetchTeacherSelection();
+                }
             } else if (systemPhase === 'result') {
                 fetchTeacherFinalStudents();
             }
@@ -121,13 +123,32 @@ const ThesisSystem = () => {
 
     const fetchDirectionStudents = async () => {
         try {
+            console.log('开始获取学生选择，teacherId:', teacherInfo.id);
             const response = await fetch(`/api/direction-students?teacherId=${teacherInfo.id}`);
             const data = await response.json();
+            
+            if (!response.ok) {
+                console.error('获取学生选择失败:', data);
+                throw new Error(data.error || '获取学生选择失败');
+            }
+
             if (data.students) {
-                setDirectionStudents(data.students);
+                console.log('获取到的学生数据:', data.students);
+                // 格式化学生数据
+                const formattedStudents = data.students.map(student => ({
+                    student_id: student.student_id,
+                    name: student.student_name,
+                    direction_name: student.direction_name
+                }));
+                console.log('格式化后的学生数据:', formattedStudents);
+                setDirectionStudents(formattedStudents);
+            } else {
+                console.log('没有找到学生数据');
+                setDirectionStudents([]);
             }
         } catch (error) {
             console.error('获取选择导师方向的学生失败:', error);
+            setDirectionStudents([]);
         }
     };
 
@@ -1042,34 +1063,34 @@ const ThesisSystem = () => {
             <div style={{padding: '16px', flex: 1, overflow: 'auto', maxHeight: '400px'}}>
             {/* 服从分配选项 */}
             <div
-            onClick={() => {
-                setIsObeyAllocation(true);
-                setSelectedDirection(null);
-            }}
-            style={{
-                ...styles.directionCard,
-                ...(isObeyAllocation ? styles.directionCardSelected : {}),
-                marginBottom: '20px',
-                background: isObeyAllocation ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                borderColor: isObeyAllocation ? '#f59e0b' : '#fbbf24'
-            }}
+                onClick={() => {
+                    setIsObeyAllocation(true);
+                    setSelectedDirection(null);
+                    handleStudentSubmit(); // 选择后立即提交
+                }}
+                style={{
+                    ...styles.directionCard,
+                    ...(isObeyAllocation ? styles.directionCardSelected : {}),
+                    marginBottom: '20px',
+                    background: isObeyAllocation ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                    borderColor: isObeyAllocation ? '#f59e0b' : '#fbbf24'
+                }}
             >
-            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                <div style={{display: 'flex', alignItems: 'center'}}>
-                    <Shuffle size={24} color={isObeyAllocation ? 'white' : '#f59e0b'} style={{marginRight: '12px'}} />
-                    <div>
-                        <h3 style={{fontSize: '16px', fontWeight: 'bold', color: isObeyAllocation ? 'white' : '#92400e', margin: '0 0 4px'}}>服从分配</h3>
-                        <p style={{color: isObeyAllocation ? 'rgba(255,255,255,0.9)' : '#b45309', margin: 0, fontSize: '14px'}}>由系统随机分配导师</p>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                    <div style={{display: 'flex', alignItems: 'center'}}>
+                        <Shuffle size={24} color={isObeyAllocation ? 'white' : '#f59e0b'} style={{marginRight: '12px'}} />
+                        <div>
+                            <h3 style={{fontSize: '16px', fontWeight: 'bold', color: isObeyAllocation ? 'white' : '#92400e', margin: '0 0 4px'}}>服从分配</h3>
+                            <p style={{color: isObeyAllocation ? 'rgba(255,255,255,0.9)' : '#b45309', margin: 0, fontSize: '14px'}}>由系统随机分配导师</p>
+                        </div>
                     </div>
+                    {isObeyAllocation && (
+                        <CheckCircle size={20} color="white" />
+                    )}
                 </div>
-                {isObeyAllocation && (
-                    <CheckCircle size={20} color="white" />
-                )}
-            </div>
             </div>
 
             {/* 研究方向列表 */}
-            <div style={{paddingTop: '8px', borderTop: '1px solid #e5e7eb'}}>
             <h4 style={{fontSize: '14px', color: '#6b7280', marginBottom: '12px'}}>或选择具体研究方向：</h4>
             {researchDirections.map((direction) => (
                 <div
@@ -1077,6 +1098,7 @@ const ThesisSystem = () => {
                     onClick={() => {
                         setSelectedDirection(direction.id);
                         setIsObeyAllocation(false);
+                        handleStudentSubmit(); // 选择后立即提交
                     }}
                     style={{
                         ...styles.directionCard,
@@ -1102,38 +1124,49 @@ const ThesisSystem = () => {
             ))}
             </div>
             </div>
-            </div>
 
-            {/* 提交按钮 */}
-            <div style={{textAlign: 'center', marginTop: '16px'}}>
-            <button
-            onClick={handleStudentSubmit}
-            disabled={(!selectedDirection && !isObeyAllocation) || loading}
-            style={{...styles.button, padding: '12px 32px', fontSize: '16px', opacity: ((!selectedDirection && !isObeyAllocation) || loading) ? 0.5 : 1}}
-            >
-            {loading ? (
-            <>
-                <div style={{width: '16px', height: '16px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginRight: '8px'}}></div>
-                提交中...
-            </>
-            ) : (
-            <>
-                <Save size={16} />
-                {isEditing ? '保存修改' : '确认提交'}
-            </>
-            )}
-            </button>
-            {isEditing && (
-            <button
-            onClick={() => {
-                setIsEditing(false);
-                fetchStudentChoice();
-            }}
-            style={{...styles.button, marginLeft: '12px', padding: '12px 32px', fontSize: '16px', background: '#6b7280'}}
-            >
-            取消修改
-            </button>
-            )}
+            {/* 提交按钮 - 始终显示 */}
+            <div style={{textAlign: 'center', marginTop: '16px', display: 'flex', justifyContent: 'center', gap: '16px'}}>
+                <button
+                    onClick={handleStudentSubmit}
+                    disabled={(!selectedDirection && !isObeyAllocation) || loading}
+                    style={{
+                        ...styles.button,
+                        padding: '12px 32px',
+                        fontSize: '16px',
+                        minWidth: '160px',
+                        opacity: ((!selectedDirection && !isObeyAllocation) || loading) ? 0.5 : 1
+                    }}
+                >
+                    {loading ? (
+                        <>
+                            <div style={{width: '16px', height: '16px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginRight: '8px'}}></div>
+                            提交中...
+                        </>
+                    ) : (
+                        <>
+                            <Save size={16} />
+                            确认提交
+                        </>
+                    )}
+                </button>
+                {isEditing && (
+                    <button
+                        onClick={() => {
+                            setIsEditing(false);
+                            fetchStudentChoice();
+                        }}
+                        style={{
+                            ...styles.button,
+                            padding: '12px 32px',
+                            fontSize: '16px',
+                            minWidth: '160px',
+                            background: '#6b7280'
+                        }}
+                    >
+                        取消修改
+                    </button>
+                )}
             </div>
             </div>
             ) : null}
@@ -1424,12 +1457,50 @@ const ThesisSystem = () => {
                     </div>
                 </div>
                 <div style={{padding: '20px'}}>
-                    <h3 style={{fontSize: '16px', fontWeight: 'bold', color: '#1f2937', marginBottom: '12px'}}>您的研究方向：</h3>
+                    {/* <h3 style={{fontSize: '16px', fontWeight: 'bold', color: '#1f2937', marginBottom: '12px'}}>您的研究方向：</h3> */}
                     {teacherDirections.filter(d => d).map((direction, index) => (
-                        <div key={index} style={{padding: '12px', background: '#f3f4f6', borderRadius: '8px', marginBottom: '8px'}}>
+                        <div key={index} style={{padding: '12px', background: '#f3f4f6', borderRadius: '8px', marginBottom: '8px', display: 'none'}}>
                             <span style={{color: '#374151'}}>方向 {index + 1}：{direction}</span>
                         </div>
                     ))}
+                    
+                    {/* 显示已选择的学生 */}
+                    <div style={{marginTop: '0'}}>
+                        <h3 style={{fontSize: '16px', fontWeight: 'bold', color: '#1f2937', marginBottom: '12px'}}>已选择您方向的学生：</h3>
+                        {directionStudents.length > 0 ? (
+                            <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                                {directionStudents.map((student, index) => (
+                                    <div key={index} style={{
+                                        padding: '16px',
+                                        background: 'white',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                        border: '1px solid #e5e7eb'
+                                    }}>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                            <div>
+                                                <h4 style={{fontSize: '16px', fontWeight: 'bold', color: '#1f2937', margin: '0 0 4px'}}>
+                                                    {student.name} ({student.student_id})
+                                                </h4>
+                                                <p style={{color: '#6b7280', margin: 0, fontSize: '14px'}}>
+                                                    选择方向：{student.direction_name}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{
+                                padding: '20px',
+                                background: '#f9fafb',
+                                borderRadius: '8px',
+                                textAlign: 'center'
+                            }}>
+                                <p style={{color: '#6b7280', margin: 0}}>暂无学生选择您的研究方向</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         )}
@@ -1469,7 +1540,10 @@ const ThesisSystem = () => {
                                             <strong>提示：</strong>共有 {directionStudents.length} 位学生选择了您的研究方向
                                         </p>
                                     </div>
-                                    {directionStudents.map((student, index) => (
+                                    {directionStudents
+                                        .slice()
+                                        .sort((a, b) => String(a.student_id).localeCompare(String(b.student_id)))
+                                        .map((student, index) => (
                                         <div key={student.student_id} style={{padding: '16px', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #22c55e', borderRadius: '16px', marginBottom: '12px', transition: 'all 0.3s ease'}}>
                                             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
                                                 <div style={{display: 'flex', alignItems: 'center'}}>
@@ -1478,20 +1552,16 @@ const ThesisSystem = () => {
                                                     </div>
                                                     <div>
                                                         <h3 style={{fontSize: '16px', fontWeight: 'bold', color: '#1f2937', margin: '0 0 4px'}}>
-                                                            {student.student_name}
+                                                            {student.name}（{student.student_id}）
                                                         </h3>
                                                         <p style={{color: '#6b7280', fontSize: '14px', margin: 0}}>
-                                                            学号：{student.student_id}
-                                                        </p>
-                                                        <p style={{color: '#9ca3af', fontSize: '12px', margin: 0}}>
                                                             选择方向：{student.direction_name}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <button
                                                     onClick={() => handleSelectStudent(student.student_id)}
-                                                    style={{...styles.button, background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)', padding: '8px 20px'}}
-                                                >
+                                                    style={{...styles.button, background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)', padding: '8px 20px'}}>
                                                     选择该学生
                                                 </button>
                                             </div>
