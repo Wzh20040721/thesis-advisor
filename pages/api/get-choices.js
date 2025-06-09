@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         // 验证学生是否存在
         const { data: student } = await supabase
             .from('students')
-            .select('student_id')
+            .select('id')
             .eq('student_id', studentId)
             .single()
 
@@ -25,25 +25,23 @@ export default async function handler(req, res) {
 
         const { data, error } = await supabase
             .from('student_choices')
-            .select('*')
-            .eq('student_id', studentId)
+            .select(`
+                selected_direction_id,
+                is_obey_allocation,
+                research_directions (
+                    id,
+                    direction_name,
+                    teacher_id
+                )
+            `)
+            .eq('student_id', student.id)
             .single()
 
         if (error && error.code !== 'PGRST116') {
             throw error
         }
 
-        if (!data) {
-            return res.status(200).json({ choices: [] })
-        }
-
-        const choices = [
-            data.teacher_id_1,
-            data.teacher_id_2,
-            data.teacher_id_3
-        ].filter(id => id !== null)
-
-        res.status(200).json({ choices })
+        res.status(200).json({ choice: data })
     } catch (error) {
         console.error('获取选择错误:', error)
         res.status(500).json({ error: '服务器错误' })

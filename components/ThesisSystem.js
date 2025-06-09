@@ -137,7 +137,7 @@ const ThesisSystem = () => {
                 // 格式化学生数据
                 const formattedStudents = data.students.map(student => ({
                     student_id: student.student_id,
-                    name: student.student_name,
+                    name: student.name,
                     direction_name: student.direction_name
                 }));
                 console.log('格式化后的学生数据:', formattedStudents);
@@ -307,9 +307,9 @@ const ThesisSystem = () => {
         }
 
         // 检查长度
-        const invalidDirection = directions.find(d => d.length < 5 || d.length > 15);
+        const invalidDirection = directions.find(d => d.length < 10 || d.length > 30);
         if (invalidDirection) {
-            alert('每个研究方向应在5-15个字之间');
+            alert('每个研究方向应在10-30个字之间');
             return;
         }
 
@@ -1397,7 +1397,7 @@ const ThesisSystem = () => {
                         <FileText size={32} style={{marginRight: '12px'}} />
                         <div>
                             <h2 style={{fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px'}}>填写研究方向</h2>
-                            <p style={{opacity: 0.9, margin: 0, fontSize: '14px'}}>请填写1-3个研究方向（每个5-15字），学生将根据这些方向进行选择</p>
+                            <p style={{opacity: 0.9, margin: 0, fontSize: '14px'}}>请填写1-3个研究方向（每个10-30字），学生将根据这些方向进行选择</p>
                         </div>
                     </div>
                 </div>
@@ -1414,9 +1414,9 @@ const ThesisSystem = () => {
                                     newDirections[index] = e.target.value;
                                     setTeacherDirections(newDirections);
                                 }}
-                                placeholder={`请输入研究方向${index + 1}（5-15字）`}
+                                placeholder={`请输入研究方向${index + 1}（10-30字）`}
                                 style={styles.input}
-                                maxLength={15}
+                                maxLength={30}
                             />
                         </div>
                     ))}
@@ -1435,7 +1435,7 @@ const ThesisSystem = () => {
                         <p style={{fontSize: '12px', color: '#1d4ed8', margin: 0}}>
                             <strong>注意事项：</strong><br />
                             • 研究方向将展示给学生选择，请认真填写<br />
-                            • 每个方向应在5-15个字之间，简明扼要<br />
+                            • 每个方向应在10-30个字之间，简明扼要<br />
                             • 尽量避免与其他导师重复的方向<br />
                             • 保存后在本阶段结束前仍可修改
                         </p>

@@ -16,18 +16,40 @@ export default async function handler(req, res) {
             .from('teacher_student_matches')
             .select('*')
             .eq('teacher_id', teacherId)
-            .order('priority', { ascending: true })
 
         if (error) throw error
 
-        // 按优先级分组
-        const students = {
-            first: matches.filter(m => m.priority === 1),
-            second: matches.filter(m => m.priority === 2),
-            third: matches.filter(m => m.priority === 3)
-        }
+        // 获取已选择的学生
+        const { data: selectedStudent } = await supabase
+            .from('teacher_selections')
+            .select(`
+                student_id,
+                students (
+                    student_id,
+                    name
+                )
+            `)
+            .eq('teacher_id', teacherId)
+            .single()
 
-        res.status(200).json({ students })
+        // 获取最终分配结果
+        const { data: finalAllocations } = await supabase
+            .from('final_allocations')
+            .select(`
+                student_id,
+                allocation_type,
+                students (
+                    student_id,
+                    name
+                )
+            `)
+            .eq('teacher_id', teacherId)
+
+        res.status(200).json({ 
+            matches: matches || [],
+            selectedStudent: selectedStudent || null,
+            finalAllocations: finalAllocations || []
+        })
     } catch (error) {
         console.error('获取学生列表错误:', error)
         res.status(500).json({ error: '服务器错误' })

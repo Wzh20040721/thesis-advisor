@@ -42,7 +42,8 @@ export default async function handler(req, res) {
         const { error: updateError } = await supabase
             .from('teachers')
             .update({
-                password: hashedNewPassword
+                password: hashedNewPassword,
+                updated_at: new Date().toISOString()
             })
             .eq('id', teacherId)
 

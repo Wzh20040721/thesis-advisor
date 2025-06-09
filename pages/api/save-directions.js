@@ -11,20 +11,20 @@ export default async function handler(req, res) {
 		return res.status(400).json({ error: '参数不完整' })
 	}
 
+	// 验证研究方向长度
+	const validateDirection = (direction) => {
+		if (!direction) return true // 允许空值
+		const length = direction.length
+		return length >= 10 && length <= 30
+	}
+
+	if (!validateDirection(directions.direction1) || 
+		!validateDirection(directions.direction2) || 
+		!validateDirection(directions.direction3)) {
+		return res.status(400).json({ error: '研究方向长度必须在10-30个字符之间' })
+	}
+
 	try {
-		// 更新导师的研究方向
-		const { error: updateError } = await supabase
-			.from('teachers')
-			.update({
-				research_direction_1: directions.direction1,
-				research_direction_2: directions.direction2,
-				research_direction_3: directions.direction3,
-				updated_at: new Date().toISOString()
-			})
-			.eq('id', teacherId)
-
-		if (updateError) throw updateError
-
 		// 删除旧的研究方向记录
 		await supabase
 			.from('research_directions')
@@ -52,6 +52,7 @@ export default async function handler(req, res) {
 			})
 		}
 
+		// 只有当有研究方向时才插入
 		if (directionsToInsert.length > 0) {
 			const { error: insertError } = await supabase
 				.from('research_directions')
@@ -60,7 +61,7 @@ export default async function handler(req, res) {
 			if (insertError) throw insertError
 		}
 
-		res.status(200).json({ success: true, message: '保存成功' })
+		res.status(200).json({ success: true, message: '研究方向保存成功' })
 	} catch (error) {
 		console.error('保存研究方向错误:', error)
 		res.status(500).json({ error: '服务器错误' })

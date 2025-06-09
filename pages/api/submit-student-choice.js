@@ -12,15 +12,26 @@ export default async function handler(req, res) {
 	}
 
 	try {
-		// 检查是否已有选择记录
-		const { data: existing } = await supabase
-			.from('student_choices')
+		// 获取学生ID
+		const { data: student } = await supabase
+			.from('students')
 			.select('id')
 			.eq('student_id', studentId)
 			.single()
 
+		if (!student) {
+			return res.status(400).json({ error: '学生不存在' })
+		}
+
+		// 检查是否已有选择记录
+		const { data: existing } = await supabase
+			.from('student_choices')
+			.select('id')
+			.eq('student_id', student.id)
+			.single()
+
 		const choiceData = {
-			student_id: studentId,
+			student_id: student.id,
 			selected_direction_id: isObeyAllocation ? null : selectedDirectionId,
 			is_obey_allocation: isObeyAllocation,
 			updated_at: new Date().toISOString()
@@ -31,7 +42,7 @@ export default async function handler(req, res) {
 			const { error } = await supabase
 				.from('student_choices')
 				.update(choiceData)
-				.eq('student_id', studentId)
+				.eq('student_id', student.id)
 
 			if (error) throw error
 		} else {

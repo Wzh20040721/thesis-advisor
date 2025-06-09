@@ -12,6 +12,17 @@ export default async function handler(req, res) {
 	}
 
 	try {
+		// 获取学生ID
+		const { data: student } = await supabase
+			.from('students')
+			.select('id')
+			.eq('student_id', studentId)
+			.single()
+
+		if (!student) {
+			return res.status(400).json({ error: '学生不存在' })
+		}
+
 		// 检查导师是否已经选择过学生
 		const { data: existing } = await supabase
 			.from('teacher_selections')
@@ -27,7 +38,7 @@ export default async function handler(req, res) {
 		const { data: studentSelected } = await supabase
 			.from('teacher_selections')
 			.select('id')
-			.eq('student_id', studentId)
+			.eq('student_id', student.id)
 			.single()
 
 		if (studentSelected) {
@@ -39,7 +50,7 @@ export default async function handler(req, res) {
 			.from('teacher_selections')
 			.insert({
 				teacher_id: teacherId,
-				student_id: studentId
+				student_id: student.id
 			})
 
 		if (error) throw error

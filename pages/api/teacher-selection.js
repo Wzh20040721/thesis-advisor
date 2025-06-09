@@ -14,7 +14,13 @@ export default async function handler(req, res) {
 	try {
 		const { data, error } = await supabase
 			.from('teacher_selections')
-			.select('student_id')
+			.select(`
+				student_id,
+				students (
+					student_id,
+					name
+				)
+			`)
 			.eq('teacher_id', teacherId)
 			.single()
 

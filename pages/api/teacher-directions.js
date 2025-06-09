@@ -12,20 +12,23 @@ export default async function handler(req, res) {
 	}
 
 	try {
-		const { data, error } = await supabase
-			.from('teachers')
-			.select('research_direction_1, research_direction_2, research_direction_3')
-			.eq('id', teacherId)
-			.single()
+		const { data: directions, error } = await supabase
+			.from('research_directions')
+			.select('id, direction_name')
+			.eq('teacher_id', teacherId)
+			.order('id')
 
 		if (error) throw error
 
+		// 将研究方向转换为数组格式
+		const formattedDirections = {
+			direction1: directions[0]?.direction_name || '',
+			direction2: directions[1]?.direction_name || '',
+			direction3: directions[2]?.direction_name || ''
+		}
+
 		res.status(200).json({
-			directions: {
-				direction1: data?.research_direction_1 || '',
-				direction2: data?.research_direction_2 || '',
-				direction3: data?.research_direction_3 || ''
-			}
+			directions: formattedDirections
 		})
 	} catch (error) {
 		console.error('获取导师研究方向错误:', error)

@@ -15,7 +15,10 @@ export default async function handler(req, res) {
 		// 1. 获取所有已被导师选中的学生
 		const { data: selectedStudents } = await supabase
 			.from('teacher_selections')
-			.select('student_id, teacher_id')
+			.select(`
+				student_id,
+				teacher_id
+			`)
 
 		// 创建已选择的记录
 		if (selectedStudents && selectedStudents.length > 0) {
@@ -30,13 +33,14 @@ export default async function handler(req, res) {
 				.insert(selectedAllocations)
 		}
 
-		// 2. 获取所有未被选中的学生
+		// 2. 获取所有未被选中的学生，按学号排序
 		const selectedStudentIds = selectedStudents?.map(s => s.student_id) || []
 
 		const { data: unallocatedStudents } = await supabase
-			.from('student_choices')
-			.select('student_id')
-			.not('student_id', 'in', `(${selectedStudentIds.join(',')})`)
+			.from('students')
+			.select('id, student_id')
+			.not('id', 'in', `(${selectedStudentIds.join(',')})`)
+			.order('student_id')
 
 		if (!unallocatedStudents || unallocatedStudents.length === 0) {
 			return res.status(200).json({
@@ -48,7 +52,7 @@ export default async function handler(req, res) {
 		// 3. 获取所有导师，按工号排序
 		const { data: teachers } = await supabase
 			.from('teachers')
-			.select('id, work_id, has_selected_student')
+			.select('id, work_id, max_students')
 			.order('work_id')
 
 		if (!teachers || teachers.length === 0) {
@@ -58,28 +62,43 @@ export default async function handler(req, res) {
 		// 4. 计算每个导师当前的学生数
 		const teacherStudentCount = {}
 		teachers.forEach(t => {
-			teacherStudentCount[t.id] = t.has_selected_student ? 1 : 0
+			teacherStudentCount[t.id] = 0
 		})
 
-		// 5. 随机分配算法
+		// 5. 基于编号的轮流分配算法
 		const randomAllocations = []
-		const shuffledStudents = [...unallocatedStudents].sort(() => Math.random() - 0.5)
+		let currentTeacherIndex = 0
 
-		for (const student of shuffledStudents) {
-			// 找到学生数最少的导师
-			let minCount = Math.min(...Object.values(teacherStudentCount))
-			let availableTeachers = teachers.filter(t => teacherStudentCount[t.id] === minCount)
+		// 遍历所有未分配的学生
+		for (const student of unallocatedStudents) {
+			let allocated = false
+			
+			// 从当前导师开始，尝试分配
+			for (let i = 0; i < teachers.length; i++) {
+				// 计算实际要检查的导师索引（循环使用）
+				const teacherIndex = (currentTeacherIndex + i) % teachers.length
+				const teacher = teachers[teacherIndex]
 
-			// 如果有多个导师学生数相同，按工号顺序选择第一个
-			const selectedTeacher = availableTeachers[0]
+				// 检查导师是否还有名额
+				if (teacherStudentCount[teacher.id] < teacher.max_students) {
+					// 分配学生给该导师
+					randomAllocations.push({
+						student_id: student.id,
+						teacher_id: teacher.id,
+						allocation_type: 'random'
+					})
+					teacherStudentCount[teacher.id]++
+					// 更新下一个要检查的导师索引
+					currentTeacherIndex = (teacherIndex + 1) % teachers.length
+					allocated = true
+					break
+				}
+			}
 
-			randomAllocations.push({
-				student_id: student.student_id,
-				teacher_id: selectedTeacher.id,
-				allocation_type: 'random'
-			})
-
-			teacherStudentCount[selectedTeacher.id]++
+			// 如果无法分配（所有导师都已满），记录错误
+			if (!allocated) {
+				console.error(`无法为学生 ${student.student_id} 分配导师：所有导师都已满`)
+			}
 		}
 
 		// 6. 插入随机分配记录
@@ -102,10 +121,10 @@ export default async function handler(req, res) {
 
 		res.status(200).json({
 			success: true,
-			message: `随机分配完成，共分配了 ${randomAllocations.length} 名学生`
+			message: `分配完成，共分配了 ${randomAllocations.length} 名学生`
 		})
 	} catch (error) {
-		console.error('随机分配错误:', error)
+		console.error('分配错误:', error)
 		res.status(500).json({ error: '服务器错误' })
 	}
 }

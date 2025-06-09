@@ -61,9 +61,8 @@ export default async function handler(req, res) {
 
 		// 格式化数据
 		const formattedStudents = students?.map(s => ({
-			student_id: s.student_id,
-			student_name: s.students?.name || '',
-			direction_id: s.selected_direction_id,
+			student_id: s.students?.student_id,
+			name: s.students?.name || '',
 			direction_name: s.research_directions?.direction_name || ''
 		})) || []
 

@@ -18,6 +18,7 @@ export default async function handler(req, res) {
         student_id,
         allocation_type,
         students (
+          student_id,
           name
         )
       `)
@@ -27,7 +28,7 @@ export default async function handler(req, res) {
 		if (error) throw error
 
 		const formattedStudents = data?.map(s => ({
-			student_id: s.student_id,
+			student_id: s.students?.student_id,
 			student_name: s.students?.name || '',
 			allocation_type: s.allocation_type
 		})) || []

@@ -14,8 +14,8 @@ export default async function handler(req, res) {
         direction_name,
         teacher_id,
         teachers (
-          name,
-          field
+          work_id,
+          name
         )
       `)
 			.order('id')
